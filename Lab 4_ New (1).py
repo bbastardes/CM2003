@@ -113,19 +113,6 @@ img_w, img_h = 240,240
 images,masks=get_data(image_path,mask_path,img_w,img_h)
 
 
-# In[9]:
-
-
-def channel(input_img,channel_info):
-    # Function providing a second channel for Autocontext. 
-    
-    image_size=list(input_img.shape)
-    image_size[-1]+=1
-    image_size=tuple(image_size)
-    
-    return aux
-
-
 # # U-NET MODEL WITHOUT WEIGHT INPUT
 
 # In[6]:
@@ -326,7 +313,7 @@ for train_index,test_index in KFold(k_fold).split(images):
 
 # # Task 2: IMPLEMENT WEIGHT MAPS & TRAIN THE MODEL WITH & WITHOUT DATA AUGMENTATION
 
-# In[ ]:
+# In[6]:
 
 
 # Dilation and Erosion Checking
@@ -391,9 +378,9 @@ def U_Net(size = (240,240,1),batch_norm=True,dropout=True,drop_r=0.5,spatial_dro
     U_Net=Sequential()
     
     image = Input(shape=size)
-    weight= Input(shape=size)
-    inputs= concatenate([image,weight],axis=-1)
-    c1_1 = Conv2D(Base, 3, padding = 'same', kernel_initializer = 'he_normal')(inputs)
+    #weight= Input(shape=size)
+    #inputs= concatenate([image,weight],axis=-1)
+    c1_1 = Conv2D(Base, 3, padding = 'same', kernel_initializer = 'he_normal')(image)
     if batch_norm==True:
         b1_1=BatchNormalization()(c1_1)
     else:
