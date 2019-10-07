@@ -138,7 +138,7 @@ def test_train_data(img_path,mask_path,img_w=256,img_h=256):
     
     image_files=os.listdir(img_path)
     mask_files=os.listdir(mask_path)
-    for i in range(5000):
+    for i in range(500):
             image_name=image_files[i]
             mask_ind=mask_files.index(image_name[0:-4]+'_Tumor.png')
             mask_name=mask_files[mask_ind]

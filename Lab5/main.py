@@ -9,11 +9,16 @@ import keras
 #tf.compat.v1.disable_eager_execution()
 #tf.config.gpu.set_per_process_memory_fraction(0.6)
 #tf.config.gpu.set_per_process_memory_growth(True)
-from data_loader import data_prep_task1, load_streamlines, test_train_data
+from keras.backend.tensorflow_backend import set_session
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.compat.v1.Session(config=config)
+tf.compat.v1.keras.backend.set_session(sess)
+
+from data_loader import data_prep_task1, load_streamlines, test_train_data, MyBatchGenerator
 from sklearn.preprocessing import MinMaxScaler
 from models import plot_model, lstm_model, unet
 from utils import dice_coef, dice_coef_loss
-
 
 #parser = argparse.ArgumentParser()
 #parser.add_argument("-t", "--task", type=int,default="1", help="Number of the task")
@@ -31,11 +36,11 @@ if args == "1":
 
     # Hyperparameters
     lr = 0.001
-    epochs = 10
+    epochs = 100
     n_batches = 16
 
     # call model, compile and fit
-    Model  = lstm_model(40, dropout=True, dr=0.2, n_batches = 16, input_size = X_train.shape[1], input_dimension = 1)
+    Model  = lstm_model(40, dropout=True, dr=0.2, n_batches = 16, input_size = X_train.shape[1], input_dimension = 1, bidirectional=False)
     Model.compile(loss='mse', optimizer='adam', metrics=['mae'])
     History = Model.fit(X_train, y_train, batch_size=n_batches, epochs=epochs, validation_data=(X_val, y_val), verbose = 1, shuffle = False)
 
@@ -59,10 +64,15 @@ elif args == "2":
     X_train, y_train = load_streamlines(dataPath, train_subjects_list,bundles_list, n_tracts_per_bundle)
     X_val, y_val = load_streamlines(dataPath, val_subjects_list, bundles_list,
                                     n_tracts_per_bundle)
+    
+    # Hyperparameters
+    lr = 0.001
+    epochs = 100
+    n_batches = 16
 
     # call model, compile and fit
     Model_fiber = lstm_model(10, dropout=True, dr=0.2, n_batches = 1, input_size = None, input_dimension = 3, bidirectional=True)
-    Model_fiber.compile(loss='binary_crossentropy', optimizer='adam', metrics=['binary_accuracy'])
+    Model_fiber.compile(loss='mse', optimizer='adam', metrics=['mae'])
     History = Model_fiber.fit_generator(MyBatchGenerator(X_train, y_train, batch_size=1),
                                         epochs=epochs, validation_data=MyBatchGenerator(X_val, y_val, batch_size=1),
                                         validation_steps=len(X_val))
@@ -103,8 +113,12 @@ elif args == "3a":
     
 elif args == "3b":
     # load data
-    Path = '/Lab1/Lab3/MRI/'
-    img_train, img_val, mask_train, mask_val = test_train_data(Path,240,240)
+    MRI_Path = '/Lab1/Lab3/MRI'
+    image_path= MRI_Path+'/Image'
+    mask_path= MRI_Path+'/Mask'
+    img_w,img_h=240,240
+    images,masks=test_train_data(image_path,mask_path,img_w,img_h)
+    img_train, img_val, mask_train, mask_val = train_test_split(images, masks, test_size=0.2, random_state=42)
 
     # hyperparameters
     batch_size = 8
