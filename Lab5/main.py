@@ -76,8 +76,12 @@ elif args == "2":
 
 elif args == "3a":
     # load data
-    Path = '/Lab1/Lab3/MRI/'
-    img_train, img_val, mask_train, mask_val = test_train_data(Path,240,240)
+    MRI_Path = '/Lab1/Lab3/MRI'
+    image_path= MRI_Path+'/Image'
+    mask_path= MRI_Path+'/Mask'
+    img_w,img_h=240,240
+    images,masks=test_train_data(image_path,mask_path,img_w,img_h)
+    img_train, img_val, mask_train, mask_val = train_test_split(images, masks, test_size=0.2, random_state=42)
 
     # hyperparameters
     batch_size = 8

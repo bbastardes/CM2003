@@ -128,48 +128,44 @@ class MyBatchGenerator(Sequence):
         return Xb, yb
     
     
-def test_train_data(data_path,img_w,img_h): 
+def test_train_data(img_path,mask_path,img_w=256,img_h=256):
+    data_img = [] 
+    data_mask = []
     
-    Image_path = os.path.join(data_path, 'Image')   
-    Mask_path = os.path.join(data_path, 'Mask')
-    Image_list = os.listdir(Image_path)
-    Mask_list = os.listdir(Mask_path)
-    dataset= list(zip(Image_list, Mask_list))
-    shuffle(dataset)
-    Image_list, Mask_list = zip(*dataset)
     
-    im_train = []
-    for i in range(len(Image_list)):
-        image_name = Image_list[i]
-        img = imread(os.path.join(Image_path, image_name), as_grey=True)
-        img = resize(img, (img_h, img_w), anti_aliasing = True).astype('float32')
-        im_train.append(img) 
-        
-        if i % 200 == 0:
-             print('Reading: {0}/{1}  of train images'.format(i, len(Image_list)))
-                
-    msk_train = []
-    for i in range(len(Mask_list)):
-        mask_name = Mask_list[i]
-        m = imread(os.path.join(Mask_path, mask_name), as_grey=True)
-        m = resize(m, (img_h, img_w), anti_aliasing = True).astype('float32')
-        msk_train.append(m) 
-        
-        if i % 200 == 0:
-             print('Reading: {0}/{1}  of train images'.format(i, len(Mask_list)))         
+    combined = list(zip(os.listdir(img_path),os.listdir(mask_path)))
+    random.shuffle(combined)
     
-    img_train, img_val, mask_train, mask_val = train_test_split(im_train, msk_train, test_size = 0.2)
-        
-    img_train = np.expand_dims(img_train, axis = -1)
-    img_train = np.array(img_train)
-    img_val = np.expand_dims(img_val, axis = -1)    
-    img_val = np.array(img_val)
-    mask_train = np.expand_dims(mask_train, axis = -1)
-    mask_train = np.array(mask_train)
-    mask_val = np.expand_dims(mask_val, axis = -1)
-    mask_val = np.array(mask_val)
+    image_files=os.listdir(img_path)
+    mask_files=os.listdir(mask_path)
+    for i in range(5000):
+            image_name=image_files[i]
+            mask_ind=mask_files.index(image_name[0:-4]+'_Tumor.png')
+            mask_name=mask_files[mask_ind]
 
-    return img_train, img_val, mask_train, mask_val    
+            img = imread(os.path.join(img_path, image_name), as_grey=True)
+            img = resize(img, (img_h, img_w), anti_aliasing = True).astype('float32')
+            data_img.append(img)
+
+            mask = imread(os.path.join(mask_path, mask_name), as_grey=True)
+            mask = resize(mask, (img_h, img_w), anti_aliasing = True).astype('float32')
+            data_mask.append(mask)
+
+            if i % 200 == 0:
+                 print('Reading: {0}/{1}  of images/masks'.format(i, len(combined)))
+            
+            data_mask_array=np.array(data_mask)
+            data_mask_array[data_mask_array==0]=0
+            data_mask_array[data_mask_array>0]=1
+    # Convert into array
+    data_img=np.array(data_img)
+    
+    # Expand dimensions
+    data_img=np.expand_dims(data_img,axis=-1)
+    data_mask_array=np.expand_dims(data_mask_array,axis=-1)
+
+    return data_img,data_mask_array
+
 
 
     
